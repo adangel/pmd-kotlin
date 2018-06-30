@@ -1,0 +1,196 @@
+options {
+  JAVA_UNICODE_ESCAPE = true;
+  CACHE_TOKENS = true;
+  STATIC = false;
+  USER_CHAR_STREAM = true;
+  
+  MULTI = true;
+  VISITOR = true;
+  NODE_USES_PARSER = true;
+  TRACK_TOKENS = true;
+  NODE_PACKAGE="net.sourceforge.pmd.lang.kotlin.ast";
+  NODE_CLASS = "net.sourceforge.pmd.lang.kotlin.ast.AbstractKotlinNode";
+
+  //DEBUG_PARSER = true;
+  //DEBUG_LOOKAHEAD = true;
+}
+
+PARSER_BEGIN(KotlinParser)
+package net.sourceforge.pmd.lang.kotlin.ast;
+import net.sourceforge.pmd.lang.ast.CharStream;
+import net.sourceforge.pmd.lang.ast.TokenMgrError;
+public class KotlinParser {
+}
+PARSER_END(KotlinParser)
+
+SPECIAL_TOKEN :
+{
+  " " | "\t" | "\n" | "\r" | "\f"
+}
+
+TOKEN :
+{
+  < FUN: "fun" >
+}
+
+TOKEN :
+{
+  < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
+  |
+  < IDENTIFIER: <LETTER> (<PART_LETTER>)* >
+  |
+  < #LETTER:
+      [  // all chars for which Character.isJavaIdentifierStart is true
+         "$",
+         "A"-"Z",
+         "_",
+         "a"-"z"
+      ]
+   >
+  |
+    < #PART_LETTER:
+      [  // all chars for which Character.isJavaIdentifierPart is true
+         "\u0000"-"\u0008",
+         "\u000e"-"\u001b",
+         "$",
+         "0"-"9",
+         "A"-"Z",
+         "_",
+         "a"-"z"
+      ]
+     >
+  
+}
+
+TOKEN :
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < DOT: "." >
+| < AT: "@" >
+}
+
+
+ASTKotlinFile KotlinFile() :
+{}
+{
+    (TopLevelObject())*
+{
+    return jjtThis;
+}
+}
+
+void TopLevelObject() :
+{}
+{
+    Function()
+}
+
+void Function() :
+{}
+{
+    "fun" SimpleName() ValueParameters() (FunctionBody())?
+}
+
+void SimpleName() :
+{
+    Token t;
+}
+{
+    t=<IDENTIFIER>
+    {
+        jjtThis.setImage(t.image);
+    }
+}
+
+void ValueParameters() :
+{}
+{
+    "(" FunctionParameter() (",")? ")"
+}
+
+void FunctionParameter() :
+{}
+{
+    Parameter()
+}
+
+void Parameter() :
+{}
+{
+    SimpleName() ":" Type()
+}
+
+void Type() :
+{}
+{
+    TypeReference()
+}
+
+void TypeReference() :
+{}
+{
+    UserType()
+}
+
+void UserType() :
+{}
+{
+    SimpleUserType() (",")?
+}
+
+void SimpleUserType() :
+{}
+{
+    SimpleName() ("<" Type() ">")?
+}
+
+void FunctionBody() :
+{}
+{
+    Block()
+}
+
+void Block() :
+{}
+{
+    "{" Statements() "}"
+}
+
+void Statements() :
+{}
+{
+    Statement()
+}
+
+void Statement() :
+{}
+{
+    SimpleName() "(" StringTemplateElement() ")"
+}
+
+void StringTemplateElement() :
+{
+    Token t;
+}
+{
+    t = <STRING_LITERAL>
+    { jjtThis.setImage(t.image); }
+}
