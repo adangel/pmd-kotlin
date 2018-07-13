@@ -15,6 +15,7 @@ import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.ast.Node;
 import net.sourceforge.pmd.lang.kotlin.ast.ASTFunction;
 import net.sourceforge.pmd.lang.kotlin.ast.ASTKotlinFile;
+import net.sourceforge.pmd.lang.kotlin.ast.ASTStatement;
 
 public class KotlinTest {
 
@@ -29,5 +30,9 @@ public class KotlinTest {
         ASTKotlinFile kotlinFile = (ASTKotlinFile) node;
         List<ASTFunction> functions = kotlinFile.findDescendantsOfType(ASTFunction.class);
         Assert.assertEquals(1, functions.size());
+        Assert.assertEquals(1, functions.get(0).getBeginLine());
+
+        ASTStatement statement = kotlinFile.getFirstDescendantOfType(ASTStatement.class);
+        Assert.assertEquals(2, statement.getBeginLine());
     }
 }

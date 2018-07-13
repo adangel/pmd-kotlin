@@ -19,6 +19,26 @@ public abstract class AbstractKotlinNode extends AbstractNode implements KotlinN
     }
 
     @Override
+    public void jjtOpen() {
+        if (beginLine == -1 && parser.token.next != null) {
+            beginLine = parser.token.next.beginLine;
+            beginColumn = parser.token.next.beginColumn;
+        }
+    }
+
+    @Override
+    public void jjtClose() {
+        if (beginLine == -1 && (children == null || children.length == 0)) {
+            beginColumn = parser.token.beginColumn;
+        }
+        if (beginLine == -1) {
+            beginLine = parser.token.beginLine;
+        }
+        endLine = parser.token.endLine;
+        endColumn = parser.token.endColumn;
+    }
+
+    @Override
     public Object childrenAccept(KotlinParserVisitor visitor, Object data) {
         if (children != null) {
             for (int i = 0; i < children.length; ++i) {
